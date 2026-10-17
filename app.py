@@ -412,6 +412,7 @@ def get_sources_from_audit(audit):
 # 9. WORKFLOW ORCHESTRATOR
 # =====================================================
 
+
 def run_signaldesk(company, industry, product):
     report = {
         "company": company,
@@ -431,48 +432,125 @@ def run_signaldesk(company, industry, product):
             expanded=True
         ) as status:
 
-            st.write("Agent 1: Signal Hunter")
+            # Agent 1
+            st.write("1/5 — Signal Hunter")
             signals = signal_hunter(
                 company, industry, product
             )
             report["steps"]["signal_hunter"] = signals
 
-            st.write("Agent 2: Company Analyst")
+            # Agent 2
+            st.write("2/5 — Company Analyst")
             analyst = company_analyst(
                 company, industry, product, signals
             )
             report["steps"]["company_analyst"] = analyst
 
-            st.write("Retrieving public news...")
+            # Initial research
+            st.write("Retrieving initial public news...")
             try:
                 sources = fetch_public_evidence(
                     company, industry
                 )
-                report["steps"]["public_sources"] = sources
-
             except Exception as exc:
                 sources = []
-                report["steps"]["public_sources"] = []
                 report["errors"].append(
-                    "News retrieval: "
-                    + type(exc).__name__
-                    + ": "
-                    + str(exc)
+                    "Initial research: " + str(exc)
                 )
 
-            st.write("Agent 3: Evidence Auditor")
+            report["steps"]["initial_sources"] = sources
+
+            # First audit
+            st.write("3/5 — Initial Evidence Audit")
             audit = evidence_auditor(
                 company, analyst, sources
             )
-            report["steps"]["evidence_auditor"] = audit
 
-            st.write("Agent 4: Sales Strategist")
-            sales = sales_strategist(
-                company, industry, product, audit
+            report["steps"]["initial_audit"] = audit
+
+            # Prepare a targeted second search
+            gaps = audit.get("research_gaps", [])
+            if isinstance(gaps, str):
+                gaps = [gaps] if gaps.strip() else []
+
+            weak_items = [
+                item for item in audit.get(
+                    "audited_opportunities", []
+                )
+                if item.get("evidence_status") in [
+                    "unsupported",
+                    "no_relevant_source",
+                    "partially_supported"
+                ]
+            ]
+
+            # Limit the second search to a few specific gaps
+            search_terms = [
+                str(gap)[:180] for gap in gaps[:3]
+            ]
+
+            if not search_terms:
+                search_terms = [
+                    str(item.get("signal", ""))[:120]
+                    for item in weak_items[:3]
+                    if item.get("signal")
+                ]
+
+            extra_sources = []
+
+            if search_terms:
+                st.write(
+                    "4/5 — Targeted research for missing evidence"
+                )
+
+                for term in search_terms[:3]:
+                    try:
+                        found = fetch_public_evidence(
+                            company,
+                            term,
+                            limit=5
+                        )
+                        extra_sources.extend(found)
+
+                    except Exception as exc:
+                        report["errors"].append(
+                            "Targeted research: " + str(exc)
+                        )
+
+            # Deduplicate source records by URL
+            all_sources = []
+            seen_urls = set()
+
+            for source in sources + extra_sources:
+                url = source.get("url", "")
+
+                if url and url not in seen_urls:
+                    seen_urls.add(url)
+                    all_sources.append(source)
+
+            report["steps"]["public_sources"] = all_sources
+            report["steps"]["additional_sources"] = extra_sources
+
+            # Final audit using both research passes
+            st.write("Re-running Evidence Auditor")
+            final_audit = evidence_auditor(
+                company, analyst, all_sources
             )
-            report["steps"]["sales_strategist"] = sales
 
+            report["steps"]["evidence_auditor"] = final_audit
+            report["steps"]["research_passes"] = (
+                2 if search_terms else 1
+            )
+
+            # Agent 4 uses the final audit only
+            st.write("5/5 — Sales Strategist")
+            sales = sales_strategist(
+                company, industry, product, final_audit
+            )
+
+            report["steps"]["sales_strategist"] = sales
             report["status"] = "completed"
+
             status.update(
                 label="Research workflow completed",
                 state="complete"
@@ -489,7 +567,6 @@ def run_signaldesk(company, industry, product):
     ).isoformat()
 
     return report
-
 
 # =====================================================
 # 10. DASHBOARD INPUT
