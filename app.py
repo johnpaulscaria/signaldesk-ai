@@ -34,72 +34,53 @@ except Exception:
     API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Custom visual system
-
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
-
 :root {
-    --sd-purple: #6d5ce8;
-    --sd-ink: #20233a;
-    --sd-muted: #747891;
+  --sd-bg:#090b12; --sd-panel:#111521; --sd-panel-2:#151b2a;
+  --sd-border:#252c3d; --sd-ink:#edf0fa; --sd-muted:#9aa4ba;
+  --sd-purple:#8b7cff; --sd-cyan:#67d9ff; --sd-green:#45d6a0;
 }
-
-html, body, [class*="css"] {
-    font-family: 'DM Sans', sans-serif;
-}
-
-.stApp {
-    background: #f7f8fc;
-    color: var(--sd-ink);
-}
-
-.block-container {
-    max-width: 1440px;
-    padding-top: 1.4rem;
-    padding-bottom: 3rem;
-}
-
-[data-testid="stSidebar"] {
-    background: #fff;
-    border-right: 1px solid #ececf4;
-}
-
-.sd-card {
-    background: #fff;
-    border: 1px solid #ececf5;
-    border-radius: 18px;
-    padding: 20px 22px;
-    box-shadow: 0 5px 20px rgba(40,44,90,.035);
-    height: 100%;
-}
-
-.stButton > button,
-.stDownloadButton > button,
-.stFormSubmitButton > button {
-    border-radius: 10px;
-    min-height: 44px;
-    font-weight: 700;
-}
-
-.stButton > button[kind="primary"],
-.stFormSubmitButton > button[kind="primary"] {
-    background: linear-gradient(100deg,#6d5ce8,#7d70ed);
-    border: 0;
-    color: white;
-}
-
-[data-testid="stMetric"] {
-    background: #fff;
-    border: 1px solid #ececf5;
-    padding: 16px 18px;
-    border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(40,44,90,.025);
-}
-
-hr {
-    border-color: #ececf5;
-}
+html, body, [class*="css"] { font-family:'DM Sans',sans-serif; }
+.stApp { background:radial-gradient(ellipse at 80% -10%, #1b1c3a 0%, #090b12 42%); color:var(--sd-ink); }
+[data-testid="stHeader"] { background:rgba(9,11,18,.82); }
+.block-container { max-width:1480px; padding-top:1.8rem; padding-bottom:3rem; }
+[data-testid="stSidebar"] { background:#0d1019; border-right:1px solid var(--sd-border); }
+[data-testid="stSidebar"] .block-container { padding-top:1.6rem; }
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] label { color:var(--sd-ink); }
+.sd-brand { display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; }
+.sd-logo { background:linear-gradient(135deg,#a59aff,#5d73ff); color:#fff; border-radius:14px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:23px; box-shadow:0 0 28px #7568e544; }
+.sd-brand-name { font-family:Manrope,sans-serif; font-weight:800; font-size:1.35rem; letter-spacing:-.6px; color:#f4f5ff; }
+.sd-subtitle,.sd-muted { color:var(--sd-muted); font-size:.88rem; }
+.sd-eyebrow { text-transform:uppercase; letter-spacing:2px; font-size:.72rem; color:var(--sd-cyan); font-weight:700; }
+.sd-title { font-family:Manrope,sans-serif; font-size:2.15rem; font-weight:800; letter-spacing:-1px; color:#f3f5ff; margin:.18rem 0 .25rem; }
+.sd-description { color:var(--sd-muted); margin-bottom:1.2rem; }
+.sd-card { background:linear-gradient(145deg,rgba(22,28,43,.98),rgba(15,19,30,.98)); border:1px solid var(--sd-border); border-radius:18px; padding:20px 22px; box-shadow:0 12px 34px rgba(0,0,0,.18); height:100%; }
+.sd-card-title { font-family:Manrope,sans-serif; font-size:1rem; font-weight:750; color:#f0f2ff; margin-bottom:9px; }
+.sd-agent-icon { width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:13px; background:#24213e; color:var(--sd-purple); font-size:21px; margin-bottom:12px; border:1px solid #39335f; }
+.sd-pill { display:inline-block; padding:4px 10px; border-radius:99px; background:#25213e; color:#b9b0ff; border:1px solid #3b3561; font-size:.75rem; font-weight:700; }
+.sd-opportunity { padding:13px 0; border-bottom:1px solid #252b3a; }
+.sd-opportunity:last-child { border-bottom:0; }
+.stButton > button, .stDownloadButton > button, .stFormSubmitButton > button { border-radius:11px; min-height:44px; font-weight:700; border:1px solid #30374b; background:#171d2b; color:#edf0fa; }
+.stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"] { background:linear-gradient(105deg,#7767f4,#526dff); border:0; color:white; box-shadow:0 5px 18px #6256e633; }
+.stButton > button:hover, .stDownloadButton > button:hover { border-color:var(--sd-purple); color:white; }
+[data-testid="stMetric"] { background:linear-gradient(145deg,#151b29,#101521); border:1px solid var(--sd-border); padding:16px 18px; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.14); }
+[data-testid="stMetricLabel"] { color:var(--sd-muted); }
+[data-testid="stMetricValue"] { color:#f4f5ff; font-family:Manrope,sans-serif; font-weight:800; }
+[data-baseweb="tab-list"] { gap:8px; background:transparent; }
+[data-baseweb="tab"] { background:#121725; border:1px solid #252c3d; border-radius:10px 10px 0 0; padding:10px 16px; color:#b7c0d5; }
+[data-baseweb="tab"][aria-selected="true"] { background:#24213e; color:#d7d1ff; border-color:#484078; }
+[data-testid="stExpander"] { background:#111521; border:1px solid var(--sd-border); border-radius:12px; }
+[data-testid="stExpander"] summary, [data-testid="stExpander"] p { color:var(--sd-ink); }
+[data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea { background:#0e1320; color:#f0f2ff; border:1px solid #30374b; border-radius:10px; }
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div { background:#0e1320; color:#f0f2ff; border-color:#30374b; }
+[data-testid="stForm"] { background:rgba(17,21,33,.76); border:1px solid var(--sd-border); border-radius:18px; padding:20px; }
+[data-testid="stAlert"] { background:#151b29; border:1px solid var(--sd-border); color:var(--sd-ink); }
+[data-testid="stCaptionContainer"] { color:var(--sd-muted); }
+hr { border-color:var(--sd-border); }
+@media (max-width:800px) { .sd-title {font-size:1.65rem;} .sd-card {padding:16px;} }
 </style>
 """, unsafe_allow_html=True)
 
